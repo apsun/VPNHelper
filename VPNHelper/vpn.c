@@ -46,7 +46,7 @@ set_service_name(SCNetworkServiceRef vpn_service, L2TPConfigRef config)
         return TRUE;
     }
     
-    Boolean success = SCNetworkServiceSetName(vpn_service, config->service_name);
+    Boolean success = SCNetworkServiceSetName(vpn_service, service_name);
     
     if (!success) {
         print_scerror("Failed to set service name");
@@ -90,6 +90,7 @@ set_ppp_config(SCNetworkInterfaceRef vpn_interface, L2TPConfigRef config)
     CFDictionaryRef ppp_config = CFDictionaryCreate(NULL, keys, values, index, NULL, NULL);
     Boolean success = SCNetworkInterfaceSetConfiguration(vpn_interface, ppp_config);
     CFRelease(ppp_config);
+    
     if (!success) {
         print_scerror("Failed to set PPP config");
     }
@@ -115,6 +116,7 @@ set_ipsec_config(SCNetworkInterfaceRef vpn_interface, CFStringRef shared_secret_
     CFDictionaryRef ipsec_config = CFDictionaryCreate(NULL, keys, values, 3, NULL, NULL);
     Boolean success = SCNetworkInterfaceSetExtendedConfiguration(vpn_interface, CFSTR("IPSec"), ipsec_config);
     CFRelease(ipsec_config);
+    
     if (!success) {
         print_scerror("Failed to set IPSec config");
     }

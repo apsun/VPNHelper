@@ -144,8 +144,12 @@ configure_keychain_vpn_password(SecKeychainRef keychain, SecAccessRef access, L2
     Boolean success = configure_keychain_key(keychain, access, attribute_list, str_service, str_value);
     
 free_strings:
-    if (str_label != NULL) free(str_label);
-    if (str_account != NULL) free(str_account);
+    if (str_label != NULL) {
+        free(str_label);
+    }
+    if (str_account != NULL) {
+        free(str_account);
+    }
     free(str_service);
     free(str_value);
 exit:
@@ -174,6 +178,7 @@ configure_keychain_shared_secret(SecKeychainRef keychain, SecAccessRef access, L
     };
     
     int index = 2;
+    
     if (str_label != NULL) {
         attributes[index++] = (SecKeychainAttribute){kSecLabelItemAttr, (UInt32)strlen(str_label), str_label};
     }
@@ -183,7 +188,9 @@ configure_keychain_shared_secret(SecKeychainRef keychain, SecAccessRef access, L
     Boolean success = configure_keychain_key(keychain, access, attribute_list, str_service, str_value);
     
 free_strings:
-    if (str_label != NULL) free(str_label);
+    if (str_label != NULL) {
+        free(str_label);
+    }
     free(str_service);
     free(str_value);
 exit:
