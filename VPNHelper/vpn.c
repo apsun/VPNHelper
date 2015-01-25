@@ -205,7 +205,6 @@ create_vpn(CFStringRef *service_id, L2TPConfigRef config)
     if (service_id != NULL && *service_id != NULL) {
         vpn_service_id = *service_id;
         vpn_service = SCNetworkServiceCopy(preferences, vpn_service_id);
-        
     } else {
         vpn_service = create_vpn_service(preferences);
         vpn_service_id = SCNetworkServiceGetServiceID(vpn_service);

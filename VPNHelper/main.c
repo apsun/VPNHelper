@@ -78,7 +78,7 @@ main(int argc, char *argv[])
         return 1;
     }
     
-    const char *mode_str = argv[argc-1];
+    char *mode_str = argv[argc-1];
     if (strcmp(mode_str, "create") == 0) {
         int err = 0;
         
