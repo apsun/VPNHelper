@@ -54,7 +54,7 @@ Boolean
 delete_keychain_key(SecKeychainRef keychain, char *service)
 {
     OSStatus status;
-
+    
     while (TRUE) {
         SecKeychainItemRef item;
         status = SecKeychainFindGenericPassword(
@@ -67,19 +67,19 @@ delete_keychain_key(SecKeychainRef keychain, char *service)
             NULL,
             &item
         );
-
+        
         if (status == errSecItemNotFound) {
             return TRUE;
         }
-
+        
         if (status != errSecSuccess) {
             print_osstatus("Failed to get existing keychain entry", status);
             return FALSE;
         }
-
+        
         status = SecKeychainItemDelete(item);
         CFRelease(item);
-
+        
         if (status != errSecSuccess) {
             print_osstatus("Failed to delete existing keychain entry", status);
             return FALSE;
@@ -128,7 +128,7 @@ configure_keychain_vpn_password(SecKeychainRef keychain, SecAccessRef access, L2
     char *str_label = copy_utf8_chars(service_name);
     char *str_account = copy_utf8_chars(username);
     char *str_value = copy_utf8_chars(password);
-
+    
     SecKeychainAttribute attributes[4] = {
         {kSecServiceItemAttr,     (UInt32)strlen(str_service),     str_service},
         {kSecDescriptionItemAttr, (UInt32)strlen(str_description), str_description}

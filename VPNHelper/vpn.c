@@ -205,6 +205,10 @@ create_vpn(CFStringRef *service_id, L2TPConfigRef config)
     Boolean success = FALSE;
     
     SCPreferencesRef preferences = SCPreferencesCreate(NULL, CFSTR("VPNHelper"), NULL);
+    if (preferences == NULL) {
+        print_scerror("Failed to create preferences object");
+        goto exit;
+    }
     
     if (!SCPreferencesLock(preferences, TRUE)) {
         print_scerror("Failed to obtain preferences lock");
@@ -217,11 +221,11 @@ create_vpn(CFStringRef *service_id, L2TPConfigRef config)
     } else {
         vpn_service = create_vpn_service(preferences);
     }
-
+    
     if (vpn_service == NULL) {
         goto release_prefs;
     }
-
+    
     if (!set_service_name(vpn_service, config)) {
         goto release_service;
     }
@@ -240,7 +244,7 @@ create_vpn(CFStringRef *service_id, L2TPConfigRef config)
     if (vpn_service_id == NULL) {
         vpn_service_id = SCNetworkServiceGetServiceID(vpn_service);
     }
-
+    
     CFStringRef vpn_shared_secret_id = create_shared_secret_id(vpn_service_id);
     
     if (!set_ipsec_config(vpn_interface, vpn_shared_secret_id)) {
