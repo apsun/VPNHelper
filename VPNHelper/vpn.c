@@ -37,6 +37,17 @@ create_vpn_service(SCPreferencesRef preferences)
     return vpn_service;
 }
 
+SCNetworkServiceRef
+copy_vpn_service(SCPreferencesRef preferences, CFStringRef service_id)
+{
+    SCNetworkServiceRef vpn_service = SCNetworkServiceCopy(preferences, service_id);
+    if (vpn_service == NULL) {
+        print_scerror("Failed to get existing VPN service");
+    }
+
+    return vpn_service;
+}
+
 Boolean
 set_service_name(SCNetworkServiceRef vpn_service, L2TPConfigRef config)
 {
@@ -201,20 +212,16 @@ create_vpn(CFStringRef *service_id, L2TPConfigRef config)
     }
     
     SCNetworkServiceRef vpn_service;
-    CFStringRef vpn_service_id;
     if (service_id != NULL && *service_id != NULL) {
-        vpn_service_id = *service_id;
-        vpn_service = SCNetworkServiceCopy(preferences, vpn_service_id);
+        vpn_service = copy_vpn_service(preferences, *service_id);
     } else {
         vpn_service = create_vpn_service(preferences);
-        vpn_service_id = SCNetworkServiceGetServiceID(vpn_service);
     }
-    
+
     if (vpn_service == NULL) {
-        print_scerror("Failed to get VPN service");
         goto release_prefs;
     }
-    
+
     if (!set_service_name(vpn_service, config)) {
         goto release_service;
     }
@@ -226,9 +233,14 @@ create_vpn(CFStringRef *service_id, L2TPConfigRef config)
     }
     
     if (!set_ppp_config(vpn_interface, config)) {
-        goto release_shared_secret_id;
+        goto release_service;
     }
     
+    CFStringRef vpn_service_id = (service_id == NULL) ? NULL : *service_id;
+    if (vpn_service_id == NULL) {
+        vpn_service_id = SCNetworkServiceGetServiceID(vpn_service);
+    }
+
     CFStringRef vpn_shared_secret_id = create_shared_secret_id(vpn_service_id);
     
     if (!set_ipsec_config(vpn_interface, vpn_shared_secret_id)) {

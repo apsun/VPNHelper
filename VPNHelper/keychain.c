@@ -51,11 +51,50 @@ get_trusted_app_list()
 }
 
 Boolean
-configure_keychain_key(SecKeychainRef keychain, SecAccessRef access, SecKeychainAttributeList attributes, char *service, char *password)
+delete_keychain_key(SecKeychainRef keychain, char *service)
 {
     OSStatus status;
+
+    while (TRUE) {
+        SecKeychainItemRef item;
+        status = SecKeychainFindGenericPassword(
+            keychain,
+            (UInt32)strlen(service),
+            service,
+            0,
+            NULL,
+            NULL,
+            NULL,
+            &item
+        );
+
+        if (status == errSecItemNotFound) {
+            return TRUE;
+        }
+
+        if (status != errSecSuccess) {
+            print_osstatus("Failed to get existing keychain entry", status);
+            return FALSE;
+        }
+
+        status = SecKeychainItemDelete(item);
+        CFRelease(item);
+
+        if (status != errSecSuccess) {
+            print_osstatus("Failed to delete existing keychain entry", status);
+            return FALSE;
+        }
+    }
+}
+
+Boolean
+configure_keychain_key(SecKeychainRef keychain, SecAccessRef access, SecKeychainAttributeList attributes, char *service, char *password)
+{
+    if (!delete_keychain_key(keychain, service)) {
+        return FALSE;
+    }
     
-    status = SecKeychainItemCreateFromContent(
+    OSStatus status = SecKeychainItemCreateFromContent(
         kSecGenericPasswordItemClass,
         &attributes,
         password == NULL ? 0 : (UInt32)strlen(password),
@@ -65,45 +104,11 @@ configure_keychain_key(SecKeychainRef keychain, SecAccessRef access, SecKeychain
         NULL
     );
     
-    if (status == errSecSuccess) {
-        return TRUE;
-    }
-    
-    if (status != errSecDuplicateItem) {
-        print_osstatus("Failed to create password entry in keychain", status);
-        return FALSE;
-    }
-    
-    SecKeychainItemRef item;
-    status = SecKeychainFindGenericPassword(
-        keychain,
-        (UInt32)strlen(service),
-        service,
-        0,
-        NULL,
-        NULL,
-        NULL,
-        &item
-    );
-    
     if (status != errSecSuccess) {
-        print_osstatus("Failed to get password entry in keychain", status);
-        return FALSE;
+        print_osstatus("Failed to create new keychain entry", status);
     }
     
-    status = SecKeychainItemModifyContent(
-        item,
-        &attributes,
-        password == NULL ? 0 : (UInt32)strlen(password),
-        password
-    );
-    
-    if (status != errSecSuccess) {
-        print_osstatus("Failed to update password entry in keychain", status);
-        return FALSE;
-    }
-    
-    return TRUE;
+    return status == errSecSuccess;
 }
 
 Boolean
